@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Кристальная шахта</title>
+<style>
+:root{--bg:#f3f0ff;--card:#fff;--tx:#1d1b2e;--mu:#6b6785;--ac:#6d3df5;--gd:#e0a100;--bd:#ddd8f7;--ok:#0a9b7a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f0d1a;--card:#1a1730;--tx:#ece9ff;--mu:#9a96b8;--ac:#9b7bff;--gd:#ffc933;--bd:#2d2948;--ok:#2fd9b0}}
+:root[data-theme="dark"]{--bg:#0f0d1a;--card:#1a1730;--tx:#ece9ff;--mu:#9a96b8;--ac:#9b7bff;--gd:#ffc933;--bd:#2d2948;--ok:#2fd9b0}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:radial-gradient(ellipse at 50% -10%,color-mix(in srgb,var(--ac) 26%,transparent),transparent 60%),var(--bg);background-attachment:fixed;color:var(--tx);font:16px/1.35 "Trebuchet MS","Segoe UI",system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+#app{max-width:560px;margin:0 auto;padding:14px}
+.top{text-align:center}
+#cr{font-size:clamp(34px,10vw,52px);font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;background:linear-gradient(90deg,var(--ac),#2fd9b0);-webkit-background-clip:text;background-clip:text;color:transparent}
+#cps{color:var(--mu);font-size:15px}
+#buff{display:none;margin:6px auto 0;padding:3px 12px;border-radius:99px;background:var(--gd);color:#241a00;font-weight:700;font-size:14px;width:fit-content}
+#zone{position:relative;height:270px;display:flex;align-items:center;justify-content:center;overflow:hidden;user-select:none;-webkit-user-select:none}
+#gem{width:150px;height:150px;padding:0;border:0;border-radius:50%;cursor:pointer;touch-action:manipulation;background:radial-gradient(circle,color-mix(in srgb,var(--ac) 35%,transparent),transparent 68%);transition:transform .08s}
+#gem svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 0 18px color-mix(in srgb,var(--ac) 70%,transparent));animation:bob 3.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-6px) rotate(2deg)}}
+.gl{animation:glint 3s ease-in-out infinite}
+@keyframes glint{0%,60%,100%{opacity:0}75%{opacity:.55}}
+#gem:active{transform:scale(.92)}
+.fl{position:absolute;pointer-events:none;font-weight:800;color:var(--ac);animation:up .9s ease-out forwards;z-index:3}
+@keyframes up{to{transform:translate(var(--dx,0),-90px) scale(1.25);opacity:0}}
+.fl{font-size:20px;text-shadow:0 2px 8px color-mix(in srgb,var(--ac) 50%,transparent)}
+.sh{position:absolute;left:50%;top:50%;pointer-events:none;font-size:12px;color:var(--ac);animation:shard .6s ease-out forwards;z-index:2}
+@keyframes shard{to{transform:translate(var(--x),var(--y)) scale(.3) rotate(180deg);opacity:0}}
+.orb{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none;opacity:0;transition:opacity .6s;animation:spin var(--d) linear infinite}
+.orb.on{opacity:1}
+.orb span{position:absolute;left:var(--r);top:-12px;font-size:20px;display:block;animation:spin var(--d) linear infinite reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+#zone.buffed{background:radial-gradient(circle,color-mix(in srgb,var(--gd) 30%,transparent),transparent 65%)}
+#zone.buffed #gem svg{filter:drop-shadow(0 0 28px var(--gd))}
+.gold{position:absolute;z-index:5;border:0;border-radius:50%;width:56px;height:56px;font-size:30px;background:var(--gd);cursor:pointer;box-shadow:0 0 0 6px color-mix(in srgb,var(--gd) 30%,transparent),0 0 34px var(--gd);animation:pulse 1s infinite alternate}
+@keyframes pulse{to{transform:scale(1.18)}}
+.tabs{display:flex;gap:6px;margin:4px 0 10px}
+.tabs button{flex:1;min-width:0;padding:10px 2px;font-size:14px!important;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--mu);font:inherit;font-weight:700}
+.tabs button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.qty{display:flex;gap:6px;margin-bottom:8px}
+.qty button{flex:1;padding:6px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx);font:inherit;font-size:14px}
+.qty button.on{border-color:var(--ac);color:var(--ac);font-weight:700}
+.row{display:flex;width:100%;align-items:center;gap:10px;padding:10px 12px;margin-bottom:8px;border:1px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx);font:inherit;text-align:left;cursor:pointer}
+.row{transition:transform .1s,opacity .2s,border-color .2s}
+.row:not(.no){border-color:color-mix(in srgb,var(--ok) 55%,var(--bd))}
+.row:active{transform:scale(.98)}
+.flash{animation:fl2 .35s}
+@keyframes fl2{40%{background:color-mix(in srgb,var(--ok) 25%,var(--card))}}
+section:not([hidden]){animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}}
+.row.no{opacity:.5}
+.row .ic{font-size:28px}
+.mid{flex:1;display:flex;flex-direction:column;min-width:0}
+.rt{display:flex;flex-direction:column;text-align:right}
+small{color:var(--mu);font-size:12.5px}
+.up .rt b{color:var(--ok)}
+.card{padding:14px;border:1px solid var(--bd);border-radius:12px;background:var(--card);margin-bottom:10px}
+.big{width:100%;padding:13px;border:0;border-radius:12px;background:var(--ac);color:#fff;font:inherit;font-weight:800;font-size:16px;cursor:pointer}
+.big:disabled{opacity:.4}
+.mini{display:flex;gap:8px;justify-content:center;margin-top:12px}
+.mini button{padding:6px 12px;border:1px solid var(--bd);border-radius:8px;background:none;color:var(--mu);font:inherit;font-size:13px}
+#toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:9px 16px;border-radius:99px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90%;text-align:center}
+#toast.on{opacity:1}
+body::before,body::after{content:"";position:fixed;left:0;top:0;width:2px;height:2px;border-radius:50%;color:var(--ac);z-index:-1;pointer-events:none;animation:tw 5s ease-in-out infinite alternate}
+body::before{box-shadow:8vw 12vh 0 currentColor,23vw 5vh 0 currentColor,41vw 18vh 0 currentColor,57vw 9vh 0 currentColor,72vw 22vh 0 currentColor,90vw 7vh 0 currentColor,15vw 40vh 0 currentColor,35vw 55vh 0 currentColor,66vw 48vh 0 currentColor,93vw 60vh 0 currentColor,5vw 78vh 0 currentColor,48vw 85vh 0 currentColor,80vw 90vh 0 currentColor}
+body::after{animation-delay:-2.5s;box-shadow:3vw 28vh 0 currentColor,18vw 66vh 0 currentColor,30vw 30vh 0 currentColor,52vw 36vh 0 currentColor,62vw 70vh 0 currentColor,77vw 42vh 0 currentColor,95vw 35vh 0 currentColor,12vw 92vh 0 currentColor,38vw 95vh 0 currentColor,85vw 75vh 0 currentColor}
+@keyframes tw{from{opacity:.15}to{opacity:.8}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01s!important;animation-iteration-count:1!important}}
+#chat{margin-bottom:10px;border:1px solid var(--bd);border-radius:12px;background:var(--card);padding:8px 10px}
+#log{font-size:13px;min-height:18px;margin-bottom:6px}
+#ci{width:100%;border:1px solid var(--bd);border-radius:8px;padding:8px;background:var(--bg);color:var(--tx);font:inherit;font-size:16px}
+#adm{border-color:var(--ac)}
+#adm .g{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
+#adm .g button{padding:8px 2px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit;font-size:13px}
+</style>
+</head>
+<body>
+<div id="app">
+ <div id="chat"><div id="log"></div><input id="ci" placeholder="Чат или консоль…" autocomplete="off" enterkeyhint="send"></div>
+ <div id="adm" class="card" hidden><b>🛠 Админ-панель</b>
+  <div class="g"><button data-a="g" data-v="1e3">+1 тыс</button><button data-a="g" data-v="1e6">+1 млн</button><button data-a="g" data-v="1e9">+1 млрд</button><button data-a="g" data-v="1e12">+1 трлн</button><button data-a="g" data-v="1e15">+1 квдр</button><button data-a="c">+10 ядер</button><button data-a="u">Все улучшения</button><button data-a="b">Здания ×100</button><button data-a="a">Все достижения</button><button data-a="s">Золотой 🌟</button><button data-a="x">Ускорение ×7</button></div>
+  <button class="big" data-a="m">Всё на максимум</button></div>
+ <div class="top"><div id="cr">0</div><div id="cps"></div><div id="buff"></div></div>
+ <div id="zone"><button id="gem" aria-label="Добывать кристаллы"><svg viewBox="0 0 100 100"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d9ccff"/><stop offset="1" stop-color="#8a63ff"/></linearGradient><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8a63ff"/><stop offset="1" stop-color="#4a1fd1"/></linearGradient><linearGradient id="g3" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fe8da"/><stop offset="1" stop-color="#5a3df0"/></linearGradient></defs><polygon points="14,34 32,10 44,34" fill="#b9a4ff"/><polygon points="32,10 68,10 56,34 44,34" fill="url(#g1)"/><polygon points="68,10 86,34 56,34" fill="#9a7bff"/><polygon points="14,34 44,34 50,92" fill="url(#g2)"/><polygon points="44,34 56,34 50,92" fill="url(#g3)"/><polygon points="56,34 86,34 50,92" fill="#5b34e0"/><polygon class="gl" points="32,10 44,34 14,34" fill="#fff"/><polygon class="gl" style="animation-delay:.25s" points="44,34 56,34 50,92" fill="#fff"/></svg></button></div>
+ <div class="tabs"><button id="t0" class="on">Здания</button><button id="t1">Улучшения</button><button id="t2">Ядра</button><button id="t3">🏆</button></div>
+ <section id="s0"><div class="qty" id="qty"></div><div id="bl"></div></section>
+ <section id="s1" hidden><div id="ul"></div></section>
+ <section id="s3" hidden><div class="card"><b>Достижения: <span id="ac"></span></b><br><small>Каждое даёт +2% ко всей добыче и кликам.</small></div><div id="al"></div></section>
+ <section id="s2" hidden>
+  <div class="card"><b>Ядра: <span id="co">0</span></b><br><small>Каждое ядро даёт +5% ко всей добыче и кликам. Ядра остаются навсегда.</small></div>
+  <div class="card"><small>Добыто за этот забег: <b id="run"></b><br>Ядер за перерождение: <b id="gain"></b> (нужно от 10 млн за забег)</small></div>
+  <button class="big" id="pr">Перерождение</button>
+  <div class="card" style="margin-top:10px"><small>Всего кликов: <b id="ck"></b><br>Золотые кристаллы появляются сами. Лови их: либо большой куш, либо ×7 добычи на 30 секунд.</small></div>
+  <div class="mini"><button id="th">Тема</button><button id="wipe">Стереть сохранение</button></div>
+ </section>
+</div>
+<div id="toast"></div>
+<script>
+const $=id=>document.getElementById(id);
+const B=[["Дрон-сборщик","🤖",15,1],["Бур","⛏️",100,8],["Шахта","🕳️",1100,47],["Завод","🏭",12000,260],["Портал","🌀",130000,1400],["Реактор","☀️",1400000,7800]];
+const U=[];
+B.forEach((b,i)=>[[10,10],[25,50],[50,500],[100,5000]].forEach(([n,k],j)=>U.push({id:"b"+i+"_"+j,ic:b[1],name:b[0]+": ×2",cost:b[2]*k,ok:()=>s.b[i]>=n,req:"нужно "+n+" шт."})));
+[5e2,5e3,5e4,5e5,5e6].forEach((c,j)=>U.push({id:"c"+j,ic:"👆",name:"Усиленный клик: ×2",cost:c,ok:()=>s.run>=c/4,req:""}));
+U.push({id:"cc",ic:"🔗",name:"Резонанс: клик +2% от добычи в сек.",cost:2e4,ok:()=>s.run>=5e3,req:""});
+U.push({id:"g0",ic:"🌌",name:"Тёмная материя: всё +25%",cost:1e6,ok:()=>s.run>=2e5,req:""});
+U.push({id:"g1",ic:"✨",name:"Сингулярность: всё +25%",cost:1e8,ok:()=>s.run>=2e7,req:""});
+[["cr","💥","Критический клик: 10% шанс ×10",3e4,8e3],["ac","🦾","Автокликер: 3 клика в секунду",1e5,3e4],["gz","🧲","Золотая жила: золотые кристаллы чаще",3e5,1e5],["sy","🧬","Синергия: +1% добычи за каждые 10 зданий",5e5,1e5],["gm","🪞","Магнит: золотые висят 20 с",2e6,5e5],["gb","🔋","Долгий заряд: ускорение длится 60 с",5e6,1e6],["gl","🍀","Фортуна: золотой куш ×3",3e7,5e6]].forEach(([id,ic,name,cost,need])=>U.push({id,ic,name,cost,ok:()=>s.run>=need,req:""}));
+const fresh=()=>({c:0,total:0,run:0,b:B.map(()=>0),u:{},a:{},cores:0,clicks:0,t:Date.now()});
+let s=fresh(),q=1,buff=0,cps=0,cv=1,ukey="",armed=0,gtimer=0;
+try{const r=JSON.parse(localStorage.getItem("cm1"));if(r&&r.b&&r.b.length===B.length)s=Object.assign(fresh(),r)}catch(e){}
+function f(n){if(n<1e3)return n<10?n.toFixed(1):Math.floor(n)+"";const S=["тыс","млн","млрд","трлн","квдр","квнт"];const e=Math.min(Math.floor(Math.log10(n)/3),6);return (n/10**(3*e)).toFixed(2)+" "+S[e-1]}
+function calc(){const bf=buff>Date.now()?7:1;const na=Object.keys(s.a).length;const g=(1+.05*s.cores)*(1+.02*na)*(s.u.sy?1+.01*Math.floor(s.b.reduce((x,y)=>x+y,0)/10):1)*(s.u.g0?1.25:1)*(s.u.g1?1.25:1)*bf;let p=0;
+ B.forEach((b,i)=>{let k=0;for(let j=0;j<4;j++)if(s.u["b"+i+"_"+j])k++;p+=s.b[i]*b[3]*2**k});
+ cps=p*g;let k=0;for(let j=0;j<5;j++)if(s.u["c"+j])k++;
+ cv=2**k*(1+.05*s.cores)*(1+.02*na)*bf+(s.u.cc?cps*.02:0)}
+const add=n=>{s.c+=n;s.total+=n;s.run+=n};
+const cost=(i,n)=>Math.floor(B[i][2]*1.15**s.b[i]*((1.15**n-1)/.15));
+function maxN(i){let n=0;while(n<1000&&cost(i,n+1)<=s.c)n++;return n}
+function buy(i){const n=q==="max"?maxN(i):q,c=cost(i,n);if(n>0&&s.c>=c){s.c-=c;s.b[i]+=n;calc();const r=$("r"+i);r.classList.remove("flash");void r.offsetWidth;r.classList.add("flash")}}
+function pop(e,t){const z=$("zone").getBoundingClientRect(),d=document.createElement("span");d.className="fl";d.textContent=t;
+ d.style.setProperty("--dx",(Math.random()*60-30)+"px");d.style.left=(e.clientX-z.left-14)+"px";d.style.top=(e.clientY-z.top-20)+"px";$("zone").appendChild(d);setTimeout(()=>d.remove(),900)}
+$("gem").addEventListener("pointerdown",e=>{calc();let v=cv;const ct=s.u.cr&&Math.random()<.1;if(ct)v*=10;add(v);s.clicks++;pop(e,(ct?"💥 +":"+")+f(v));burst(e,ct)});
+$("bl").innerHTML=B.map((b,i)=>`<button class="row" id="r${i}"><span class="ic">${b[1]}</span><span class="mid"><b>${b[0]}</b><small id="d${i}"></small></span><span class="rt"><b id="n${i}"></b><small id="p${i}"></small></span></button>`).join("");
+B.forEach((b,i)=>$("r"+i).onclick=()=>buy(i));
+$("qty").innerHTML=[1,10,100,"max"].map(v=>`<button data-q="${v}" class="${v===1?"on":""}">${v==="max"?"Макс":"×"+v}</button>`).join("");
+$("qty").onclick=e=>{const v=e.target.dataset.q;if(!v)return;q=v==="max"?v:+v;[...$("qty").children].forEach(b=>b.classList.toggle("on",b===e.target))};
+[0,1,2,3].forEach(i=>$("t"+i).onclick=()=>{[0,1,2,3].forEach(j=>{$("s"+j).hidden=j!==i;$("t"+j).classList.toggle("on",j===i)})});
+function ulist(){const v=U.filter(u=>!s.u[u.id]&&u.ok()).sort((a,b)=>a.cost-b.cost).slice(0,10);const k=v.map(u=>u.id).join();
+ if(k!==ukey){ukey=k;$("ul").innerHTML=v.length?v.map(u=>`<button class="row up" data-u="${u.id}"><span class="ic">${u.ic}</span><span class="mid"><b>${u.name}</b></span><span class="rt"><b>${f(u.cost)}</b></span></button>`).join(""):"<div class='card'><small>Новых улучшений пока нет. Покупай здания, и они появятся.</small></div>"}
+ [...$("ul").querySelectorAll("[data-u]")].forEach(el=>el.classList.toggle("no",s.c<U.find(u=>u.id===el.dataset.u).cost))}
+$("ul").onclick=e=>{const el=e.target.closest("[data-u]");if(!el)return;const u=U.find(x=>x.id===el.dataset.u);if(s.c>=u.cost){s.c-=u.cost;s.u[u.id]=1;ukey="";calc();ui()}};
+function gainCores(){return Math.floor(Math.sqrt(s.run/1e7))}
+$("pr").onclick=()=>{const g=gainCores();if(g<1)return;if(!armed){armed=1;$("pr").textContent="Точно? Нажми ещё раз";setTimeout(()=>{armed=0},4000);return}
+ armed=0;const n=fresh();n.cores=s.cores+g;n.total=s.total;n.clicks=s.clicks;n.a=s.a;s=n;buff=0;ukey="";calc();save();toast("Перерождение! +"+g+" ядер")};
+$("th").onclick=()=>{const d=document.documentElement,dark=getComputedStyle(d).getPropertyValue("--bg").trim()==="#0f0d1a";d.dataset.theme=dark?"light":"dark"};
+let wp=0;$("wipe").onclick=()=>{if(!wp){wp=1;$("wipe").textContent="Точно стереть?";setTimeout(()=>{wp=0;$("wipe").textContent="Стереть сохранение"},4000);return}
+ s=fresh();buff=0;ukey="";try{localStorage.removeItem("cm1")}catch(e){}wp=0;$("wipe").textContent="Стереть сохранение";calc();toast("Сохранение стёрто")};
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("on");clearTimeout(toast.h);toast.h=setTimeout(()=>e.classList.remove("on"),3500)}
+function save(){s.t=Date.now();try{localStorage.setItem("cm1",JSON.stringify(s))}catch(e){}}
+function gold(){const z=$("zone"),b=document.createElement("button");b.className="gold";b.textContent="🌟";b.style.left=(8+Math.random()*78)+"%";b.style.top=(8+Math.random()*70)+"%";
+ b.onclick=()=>{calc();if(Math.random()<.5){const g=(cps*120+cv*50+13)*(s.u.gl?3:1);add(g);toast("Куш! +"+f(g)+" кристаллов")}else{buff=Date.now()+(s.u.gb?6e4:3e4);calc();toast("Ускорение ×7 на 30 секунд")}b.remove()};
+ z.appendChild(b);setTimeout(()=>b.remove(),s.u.gm?20000:12000)}
+function sched(){gtimer=setTimeout(()=>{gold();sched()},(35000+Math.random()*55000)*(s.u.gz?.6:1))}
+function ui(){$("cr").textContent=isFinite(s.c)?f(Math.floor(s.c)):"−∞";$("cps").textContent=f(cps)+" в секунду · клик: "+f(cv);
+ const bl=buff-Date.now();const bf=$("buff");bf.style.display=bl>0?"block":"none";if(bl>0)bf.textContent="×7 ещё "+Math.ceil(bl/1000)+" с";$("zone").classList.toggle("buffed",bl>0);ORB.forEach(([o,i,n])=>o.classList.toggle("on",s.b[i]>=n));
+ B.forEach((b,i)=>{const n=q==="max"?Math.max(1,maxN(i)):q,c=cost(i,n);let k=0;for(let j=0;j<4;j++)if(s.u["b"+i+"_"+j])k++;
+  $("n"+i).textContent=s.b[i];$("d"+i).textContent="+"+f(b[3]*2**k*(1+.05*s.cores))+"/с каждый";$("p"+i).textContent="×"+n+" · "+f(c);$("r"+i).classList.toggle("no",s.c<c)});
+ ulist();$("co").textContent=s.cores;$("run").textContent=f(s.run);$("gain").textContent=gainCores();$("ck").textContent=s.clicks;
+ A.forEach(a=>$("a_"+a.id).classList.toggle("no",!s.a[a.id]));$("ac").textContent=Object.keys(s.a).length+"/"+A.length;$("pr").disabled=gainCores()<1;if(!armed)$("pr").textContent="Перерождение";}
+calc();
+const off=Math.min((Date.now()-s.t)/1000,28800);if(off>60&&cps>0){const g=cps*off*.5;add(g);toast("Пока тебя не было: +"+f(g)+" кристаллов")}
+const A=[["k1","100 кликов",()=>s.clicks>=100],["k2","1000 кликов",()=>s.clicks>=1e3],["k3","10 000 кликов",()=>s.clicks>=1e4],["t1","Миллион кристаллов",()=>s.total>=1e6],["t2","Миллиард кристаллов",()=>s.total>=1e9],["t3","Триллион кристаллов",()=>s.total>=1e12],["b1","50 дронов",()=>s.b[0]>=50],["b2","По 10 зданий каждого типа",()=>s.b.every(x=>x>=10)],["b3","10 реакторов",()=>s.b[5]>=10],["u1","15 улучшений",()=>Object.keys(s.u).length>=15],["u2","Все особые улучшения",()=>["cr","ac","gz","sy","gm","gb","gl"].every(x=>s.u[x])],["p1","Первое перерождение",()=>s.cores>=1],["p2","10 ядер",()=>s.cores>=10]].map(([id,n,ok])=>({id,n,ok}));
+$("al").innerHTML=A.map(a=>`<div class="row no" id="a_${a.id}" style="cursor:default"><span class="ic">🏆</span><span class="mid"><b>${a.n}</b><small>+2% ко всей добыче</small></span></div>`).join("");
+function chk(){A.forEach(a=>{if(!s.a[a.id]&&a.ok()){s.a[a.id]=1;toast("🏆 "+a.n);calc()}})}
+let last=performance.now();
+setInterval(()=>{const n=performance.now(),dt=Math.min((n-last)/1000,5);last=n;calc();add((cps+(s.u.ac?cv*3:0))*dt);chk();ui()},100);
+setInterval(save,5000);
+window.addEventListener("pagehide",save);
+function say(t,c){const d=document.createElement("div");d.textContent=t;if(c)d.style.color=c;const l=$("log");l.appendChild(d);while(l.children.length>4)l.firstChild.remove()}
+say("Система: добро пожаловать в шахту!","var(--mu)");
+$("ci").addEventListener("keydown",e=>{if(e.key!=="Enter")return;const t=e.target.value.trim();e.target.value="";if(!t)return;
+ if(t.toLowerCase()==="коч"){const a=$("adm");a.hidden=!a.hidden;say(a.hidden?"Админ-панель закрыта":"Админ-панель открыта","var(--ok)");return}
+ if(t.toLowerCase()==="валя"){s.c=-Infinity;say("Валя забрала все деньги… 💸","#e5484d");toast("Твой баланс: −∞");return}
+ say("Ты: "+t)});
+$("adm").onclick=e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;
+ if(!isFinite(s.c))s.c=0;if(a==="g")add(+b.dataset.v);else if(a==="u")U.forEach(u=>s.u[u.id]=1);else if(a==="b")s.b=s.b.map(x=>Math.max(x,100));else if(a==="c")s.cores+=10;else if(a==="a")A.forEach(x=>s.a[x.id]=1);else if(a==="s")gold();else if(a==="x")buff=Date.now()+6e4;
+ else if(a==="m"){U.forEach(u=>s.u[u.id]=1);s.b=s.b.map(x=>Math.max(x,100));A.forEach(x=>s.a[x.id]=1);s.cores+=100;add(1e12)}
+ ukey="";calc();ui();say("Админ: готово ✔","var(--ok)")};
+function burst(e,ct){const z=$("zone"),r=z.getBoundingClientRect();for(let i=0;i<(ct?10:5);i++){const a=Math.random()*6.283,d=50+Math.random()*50,p=document.createElement("span");p.className="sh";p.textContent="◆";p.style.left=(e.clientX-r.left)+"px";p.style.top=(e.clientY-r.top)+"px";p.style.setProperty("--x",Math.cos(a)*d+"px");p.style.setProperty("--y",Math.sin(a)*d+"px");if(i%2)p.style.color="#2fd9b0";z.appendChild(p);setTimeout(()=>p.remove(),600)}}
+var ORB=[];
+B.forEach((b,i)=>{for(let k=0;k<3;k++){const o=document.createElement("div"),r=84+i*7,d=10+i*3,dl="-"+(k*d/3).toFixed(1)+"s";o.className="orb";o.style.cssText="--r:"+r+"px;--d:"+d+"s;animation-delay:"+dl;o.innerHTML="<span style='animation-delay:"+dl+"'>"+b[1]+"</span>";$("zone").appendChild(o);ORB.push([o,i,[1,10,50][k]])}});
+sched();ui();
+</script>
+</body>
+</html>
